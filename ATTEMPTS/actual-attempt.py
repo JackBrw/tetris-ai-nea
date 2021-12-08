@@ -1,4 +1,4 @@
-import pygame, sys
+import pygame, sys, math
 from pygame.locals import *
 import numpy as np
 import random as rd
@@ -55,7 +55,7 @@ def figures(figure): # * holds the 7 grid positions for the pieces
         return figures[figure]
 
 class Tetris: # TODO: make the grid and the ability for the pieces to move down the grid
-    def __init__(self, height, width):
+    def __init__(self, width, height):
         self.height = height
         self.width = width
         self.grid = []
@@ -66,26 +66,32 @@ class Tetris: # TODO: make the grid and the ability for the pieces to move down 
         for x in range(len(grid)):
             for y in range(len(grid[x])):
                 if (x, y) in locked_positions:
-                    colour = locked_positions[(x, y)]
-                    grid[x][y] = colour
+                    grid[x][y] = locked_positions[(x, y)]
         return grid
     
+    def set_grid(self, positions: dict):
+        for x in range(0, self.height - 1):
+            for y in range(0, self.width - 1):
+                positions[(x, y)] = colour["white"]
+        return positions
     def generate_piece(self):
         return Piece(-1)
     
 class Game:
-    def __init__(self, height, width) -> None:
+    def __init__(self, width, height) -> None:
         self.height = height
         self.width = width
         self.Tetro = Tetris(height, width)
+        self.positions = {}
     
     def main(self):
         pygame.init()
         run = True
         s_width = 500
-        s_height = 700
+        s_height = 600
+        buffer = s_width / 8 - ((s_width / 8) % 10)
         win = pygame.display.set_mode((s_width, s_height))
-        block_size = s_width / self.height
+        block_size = (s_height - 2*buffer)/ self.height
         
         while run:
             for event in pygame.event.get():
@@ -93,19 +99,17 @@ class Game:
                     run = False
                     pygame.display.quit()
                     quit()
-            plop = {
-                (4, 4):colour["white"],
-                (5, 5):colour["blue"],
-                (16, 6):colour["red"],
-                (7, 7):colour["green"]
-            }
-            grid = self.Tetro.create_grid(plop)
-            for i in range(0, self.height):
-                for j in range (0, self.width):
-                    pygame.draw.rect(win, grid[i][j] , ((100 + j*block_size), (100 + i*block_size), block_size, block_size), 1)  
+
+            self.positions = self.Tetro.set_grid(self.positions)
+            grid = self.Tetro.create_grid(self.positions)
+            
+            for y in range(0, self.height):
+                for x in range (0, self.width):
+                    pygame.draw.rect(win, grid[x][y] , ((buffer + x*block_size), (buffer + y*block_size), block_size, block_size))
+                      
             pygame.display.update()
         pygame.quit()
         
 if __name__ == "__main__":
-    Play = Game(20, 10)
+    Play = Game(10, 20)
     Play.main()
