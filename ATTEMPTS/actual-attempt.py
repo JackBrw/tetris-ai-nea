@@ -38,6 +38,10 @@ class Piece: # * The class that holds a matrix of the piece
         tempMat = np.transpose(tempMat)
         tempMat = np.flip(tempMat, 1)
         self.matrix = tempMat
+        
+    def position(self):
+        anchor = (0, 0)
+        return anchor
 
 def figures(figure): # * holds the 7 grid positions for the pieces
     figures = (
@@ -60,6 +64,8 @@ class Tetris: # TODO: make the grid and the ability for the pieces to move down 
         self.width = width
         self.grid = []
         self.state = "start"
+        self.current_piece: Piece
+        self.piece_position: tuple
     
     def create_grid(self, locked_positions: dict): # * makes the grid using a dictionary of locked positions
         grid = [[(0, 0, 0) for x in range(self.width)] for y in range(self.height)]
@@ -74,8 +80,28 @@ class Tetris: # TODO: make the grid and the ability for the pieces to move down 
             for y in range(0, self.width - 1):
                 positions[(x, y)] = colour["white"]
         return positions
+    
     def generate_piece(self):
         return Piece(-1)
+    
+    def update_piece(self, positions: dict):
+        current_position = self.piece_position
+        piece = self.current_piece.get()
+        anchor_x, anchor_y = current_position
+        anchor_x -= 1
+        temp_list = []
+        for x in range(0, 3):
+            for y in range(0, 3):
+                if piece[x][y] == 1:
+                    temp_list.append((x + anchor_x, y + anchor_y))
+        
+        for i in range (0, len(temp_list) - 1):
+            positions[temp_list[i]] = colour["red"]
+                    
+        return positions
+                    
+            
+        
     
 class Game:
     def __init__(self, width, height) -> None:
@@ -92,6 +118,7 @@ class Game:
         buffer = s_width / 8 - ((s_width / 8) % 10)
         win = pygame.display.set_mode((s_width, s_height))
         block_size = (s_height - 2*buffer)/ self.height
+        piece_moving = False
         
         while run:
             for event in pygame.event.get():
@@ -99,6 +126,13 @@ class Game:
                     run = False
                     pygame.display.quit()
                     quit()
+            
+            if piece_moving == True:
+                pass
+            else:
+                self.Tetro.current_piece = self.Tetro.generate_piece()
+                self.Tetro.piece_position = (5, 0)
+                self.positions = self.Tetro.update_piece(self.positions)
 
             self.positions = self.Tetro.set_grid(self.positions)
             grid = self.Tetro.create_grid(self.positions)
