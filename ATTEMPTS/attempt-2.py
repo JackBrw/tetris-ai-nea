@@ -31,6 +31,7 @@ def figures(figure): # holds the 7 grid positions for the pieces
 
 class Piece: # * The class that holds a matrix of the piece
     def __init__(self, typeVal, anchor) -> None: #initialiser, converts the array of numbers into a 4x4 matrix
+        self.moving = True
         self.anchor = anchor
         self.values = figures(typeVal)
         self.matrix = np.array([[0, 0, 0, 0],
@@ -75,28 +76,28 @@ class Piece: # * The class that holds a matrix of the piece
     def lower_bound(self):
         a,b = self.anchor
         num = 0
-        for x in range(4):
-            if self.matrix[x][0] == 1:
-                if num < x : num = 0
-            if self.matrix[x][1] == 1:
-                if num < x : num = 1
-            if self.matrix[x][2] == 1:
-                if num < x : num = 2
-            if self.matrix[x][3] == 1:
-                if num < x : num = 3
+        for x in range(3, 0, -1):
+            if self.matrix[0][x] == 1:
+                if x >= num : num = x
+            if self.matrix[1][x] == 1:
+                if x >= num : num = x
+            if self.matrix[2][x] == 1:
+                if x >= num : num = x
+            if self.matrix[3][x] == 1:
+                if x >= num : num = x
         return (num + b)
                     
     
 class Tetris:
     def __init__(self, width, height) -> None: #initialiser
-        self.__height = height
-        self.__width = width
-        self.__positions = {}
-        self.__grid = []
-        self.__current_piece: Piece
+        self.height = height
+        self.width = width
+        self.positions = {}
+        self.grid = []
+        self.current_piece = None
         
     def create_grid(self, positions: dict) -> list: #creates the grid i.e sets the colour values
-        grid = [[colour["white"] for _ in range(self.__height)] for _ in range(self.__width)]
+        grid = [[colour["white"] for _ in range(self.height)] for _ in range(self.width)]
         for x in range(len(grid)):
             for y in range(len(grid[x])):
                 if (x, y) in positions:
@@ -116,15 +117,14 @@ class Tetris:
     def main(self):
         run = True
         pygame.init()
-        s_width = 500
+        s_width = 350
         s_height = 600
         buffer = s_width / 8 - ((s_width / 8) % 10)
         win = pygame.display.set_mode((s_width, s_height))
-        block_size = (s_height - 2*buffer)/ self.__height
+        block_size = (s_height - 2*buffer)/ self.height
         piece_moving = False
         count = 0
-        self.__current_piece = Piece(0, (3, 3))
-        
+        self.current_piece = Piece(-1, (3, -3))
         while run == True:
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
@@ -133,20 +133,26 @@ class Tetris:
                     quit()
                     
             if count > 500:
-                self.__positions = self.place_piece(self.__current_piece, self.__positions)
-                self.__positions = self.remove_piece(self.__current_piece, self.__positions)
+                if self.current_piece.moving == False:
+                    self.current_piece = Piece(-1, (3,-3))
+                    self.current_piece.moving = True
+                else:
+                    self.positions = self.place_piece(self.current_piece, self.positions)
                 #----------------------------------
-                if ((self.__current_piece.lower_bound()) + 1) <= 19:
-                    self.__current_piece.down()
+                if ((self.current_piece.lower_bound()) + 1) <= 19:
+                    self.positions = self.remove_piece(self.current_piece, self.positions)
+                    self.current_piece.down()
+                else:
+                    self.current_piece.moving = False
                 #---------------------------------
-                self.__positions = self.place_piece(self.__current_piece, self.__positions)
+                self.positions = self.place_piece(self.current_piece, self.positions)
                 count = 0
                 
-            self.__grid = self.create_grid(self.__positions)
+            self.grid = self.create_grid(self.positions)
             
-            for x in range(self.__width): #draw the grid from the dictionary
-                for y in range (self.__height):
-                    pygame.draw.rect(win, self.__grid[x][y] , ((buffer + x*block_size), (buffer + y*block_size), block_size, block_size))
+            for x in range(self.width): #draw the grid from the dictionary
+                for y in range (self.height):
+                    pygame.draw.rect(win, self.grid[x][y] , ((buffer + x*block_size), (buffer + y*block_size), block_size, block_size))
 
             pygame.display.update()
             count += 1
