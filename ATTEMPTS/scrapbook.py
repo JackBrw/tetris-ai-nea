@@ -17,7 +17,11 @@ def main(locked_positions):
     print(grid[3][4])
     print(grid[4][4])
     
+def basic():
+    grid = [[x for x in range(10)] for x in range(20)]
+    pass
+    
         
 
 if __name__ == "__main__":
-    main(_locked_positions)
+    basic()

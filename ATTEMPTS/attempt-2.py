@@ -1,4 +1,6 @@
-import pygame, sys, math
+from re import X
+from typing import Match
+import pygame, sys, math, time
 from pygame.locals import *
 import numpy as np
 import random as rd
@@ -28,7 +30,8 @@ def figures(figure): # holds the 7 grid positions for the pieces
 
 
 class Piece: # * The class that holds a matrix of the piece
-    def __init__(self, typeVal) -> None: #initialiser, converts the array of numbers into a 4x4 matrix
+    def __init__(self, typeVal, anchor) -> None: #initialiser, converts the array of numbers into a 4x4 matrix
+        self.anchor = anchor
         self.values = figures(typeVal)
         self.matrix = np.array([[0, 0, 0, 0],
                                [0, 0, 0 ,0],
@@ -45,43 +48,111 @@ class Piece: # * The class that holds a matrix of the piece
                     self.matrix[x, y] = 1
                 if (x*4 + y) == d:
                     self.matrix[x, y] = 1
-
-    def get(self): #get the value of the matrix
-        return self.matrix
-
+                    
+    def get(self):
+        return self.position()
+                    
     def rotate(self): #rotate the matrix
         tempMat = self.matrix
         tempMat = np.transpose(tempMat)
         tempMat = np.flip(tempMat, 1)
         self.matrix = tempMat
         
-    def position(self): #WIP
-        pass
+    def position(self) -> list: #WIP
+        val = []
+        a, b = self.anchor
+        for x in range(4):
+            for y in range(4):
+                if self.matrix[x][y] == 1:
+                    val.append((x + a, y + b))
+        return val
+    
+    def down(self):
+        a, b = self.anchor
+        b += 1
+        self.anchor = (a, b)
+        
+    def lower_bound(self):
+        a,b = self.anchor
+        num = 0
+        for x in range(4):
+            if self.matrix[x][0] == 1:
+                if num < x : num = 0
+            if self.matrix[x][1] == 1:
+                if num < x : num = 1
+            if self.matrix[x][2] == 1:
+                if num < x : num = 2
+            if self.matrix[x][3] == 1:
+                if num < x : num = 3
+        return (num + b)
+                    
     
 class Tetris:
-    def __init__(self, width, height) -> None:
+    def __init__(self, width, height) -> None: #initialiser
         self.__height = height
         self.__width = width
         self.__positions = {}
         self.__grid = []
+        self.__current_piece: Piece
         
-    def create_grid(self, positions: dict) -> list: #creates the grid
-        grid = [[(0, 0, 0) for x in range(self.__width)] for y in range(self.__height)]
+    def create_grid(self, positions: dict) -> list: #creates the grid i.e sets the colour values
+        grid = [[colour["white"] for _ in range(self.__height)] for _ in range(self.__width)]
         for x in range(len(grid)):
             for y in range(len(grid[x])):
                 if (x, y) in positions:
                     grid[x][y] = positions[(x, y)]
         return grid
     
-    def set_grid(self, positions: dict): #sets the grid to the base values (mainly for debugging)
-        for x in range(0, self.__height - 1):
-            for y in range(0, self.__width - 1):
-                positions[(x, y)] = colour["white"]
+    def place_piece(self, piece: Piece, positions: dict):
+        for x in range(len(piece.get())):
+            positions[piece.get()[x]] = colour["red"]
         return positions
     
-    def generate_piece(self, val):
-        return Piece(val)
+    def remove_piece(self, piece: Piece, positions: dict):
+        for x in range(len(piece.get())):
+            positions[piece.get()[x]] = colour["white"]
+        return positions
     
     def main(self):
-        pass
+        run = True
+        pygame.init()
+        s_width = 500
+        s_height = 600
+        buffer = s_width / 8 - ((s_width / 8) % 10)
+        win = pygame.display.set_mode((s_width, s_height))
+        block_size = (s_height - 2*buffer)/ self.__height
+        piece_moving = False
+        count = 0
+        self.__current_piece = Piece(0, (3, 3))
+        
+        while run == True:
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    run = False
+                    pygame.display.quit()
+                    quit()
+                    
+            if count > 500:
+                self.__positions = self.place_piece(self.__current_piece, self.__positions)
+                self.__positions = self.remove_piece(self.__current_piece, self.__positions)
+                #----------------------------------
+                if ((self.__current_piece.lower_bound()) + 1) <= 19:
+                    self.__current_piece.down()
+                #---------------------------------
+                self.__positions = self.place_piece(self.__current_piece, self.__positions)
+                count = 0
+                
+            self.__grid = self.create_grid(self.__positions)
+            
+            for x in range(self.__width): #draw the grid from the dictionary
+                for y in range (self.__height):
+                    pygame.draw.rect(win, self.__grid[x][y] , ((buffer + x*block_size), (buffer + y*block_size), block_size, block_size))
+
+            pygame.display.update()
+            count += 1
+        pygame.quit()
+        
+if __name__ == "__main__":
+    Game = Tetris(10, 20)
+    Game.main()
         
