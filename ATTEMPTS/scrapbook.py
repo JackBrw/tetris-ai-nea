@@ -1,27 +1,16 @@
-colour = {
-    "white":(255, 255, 255),
-    "black":(0, 0, 0)
-}
+for x in range(0, 3):
+    for y in range(0, 3):
+        if (y == 3 or x == 3) and squareorline == False:
+            self.matrix[x, y] = 0
+        else:
+            self.matrix[x, y] = tempMat[x, y]
+            
 
-_locked_positions = {
-    (4, 4):colour["white"],
-    (3, 4):colour["black"]
-}
-
-def main(locked_positions):
-    grid = [[(0, 0, 0) for x in range(5)] for y in range(5)]
-    for x in range(5):
-        for y in range(5):
-            if (x, y) in locked_positions:
-                grid[x][y] = locked_positions[(x, y)]
-    print(grid[3][4])
-    print(grid[4][4])
-    
-def basic():
-    grid = [[x for x in range(10)] for x in range(20)]
-    pass
-    
-        
-
-if __name__ == "__main__":
-    basic()
+if count > 300:
+    if self.current_piece.lower_bound() <= 19:
+        self.positions = self.remove_piece(self.current_piece, self.positions)
+        self.current_piece.down()
+        if self.current_piece.lower_bound() >= 19:
+            self.positions = self.place_piece(self.current_piece, self.positions)
+            self.current_piece = Piece(-1, (3, -3))  
+    count = 0  
