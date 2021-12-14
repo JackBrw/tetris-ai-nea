@@ -164,6 +164,20 @@ class Tetris:
                 del positions[piece.get()[x]]
         return positions
     
+    def detect_collision(self, positions):
+        values = self.current_piece.get()
+        collisions = False
+        for i in range(len(values)):
+            not_bottom = False
+            a, b = values[i]
+            for j in range(len(values)):
+                if (a, b+ 1) == values[j]:
+                    not_bottom = True
+            if not_bottom == False:
+                if (a, b+1) in positions:
+                    collisions = True
+        return collisions
+                
     def main(self):
         #* GAME INIT
         run = True
@@ -216,13 +230,16 @@ class Tetris:
                         while self.current_piece.bounds()[2] > self.width - 1: self.current_piece.left()
                             
             if count > 300:
-                if self.current_piece.bounds()[0] <= 19:
+                if self.current_piece.bounds()[0] <= 19 and self.detect_collision(self.positions) == False:
                     self.positions = self.remove_piece(self.current_piece, self.positions)
                     self.current_piece.down()
                     if self.current_piece.bounds()[0] >= 19:
                         self.positions = self.place_piece(self.current_piece, self.positions)
-                        self.current_piece = Piece(-1, (3, -3))  
-                count = 0                  
+                        self.current_piece = Piece(-1, (3, -3))
+                count = 0
+            if self.detect_collision(self.positions) == True:
+                self.positions = self.place_piece(self.current_piece, self.positions)
+                self.current_piece = Piece(-1, (3, -3))                 
                         
                     
             for x in range(self.width): #draw the grid from the dictionary
