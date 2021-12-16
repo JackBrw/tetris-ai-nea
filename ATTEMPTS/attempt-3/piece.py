@@ -1,5 +1,6 @@
 import random as rd
 import numpy as np
+from numpy.core.fromnumeric import shape
 
 def figures(x): #*returns the specific figure
     figures = {
@@ -31,26 +32,97 @@ class Block:
     
     def get_state(self):
         return self.piece
-    
-class Piece:
-    def __init__(self, val, colour) -> None:
-        self.colour = colour #colour of the piece
-        self.val = val 
-        self.shape = figures(val) #gets the shape of the piece
-        self.matrix = np.zeros((4, 4), dtype=int)
         
-    def construct(self):
-        a, b, c, d = self.shape
-        for x in range(0, 4): #1, 5, 9, 13
-            for y in range(0, 4):
-                if (x + y*4) == a:
-                    self.matrix[x, y] = 1
-                if (x + y*4) == b:
-                    self.atrix[x, y] = 1
-                if (x + y*4) == c:
-                    self.matrix[x, y] = 1
-                if (x + y*4) == d:
-                    self.matrix[x, y] = 1
-                    
-    def true_positions(self) -> list:
+    def move(self, arg):
+        a, b = self.coord
+        if arg == "left":
+            a -= 1
+        elif arg == "right":
+            a += 1
+        elif arg == "down":
+            b += 1
+        self.coord = (a, b)
+        
+class Piece:
+    def __init__(self, val, colour, anchor) -> None:
+        self.colour = colour
+        if val != -1:
+            self.val = val
+        else:
+            val = rd.randint(0, 6)
+            self.val = val
+        self.shape = figures(val)
+        self.anchor = anchor
+        self.blocks: list(Block) = self.construct()
+        self.matrix = self.build_matrix()
+        
+    def construct(self) -> list:
+        true_positions = []
+        constructs = []
+        a, b = self.anchor
+        for y in range(4):
+            for x in range(4):
+                for z in range(len(self.shape)):
+                    if (x + y*4) == self.shape[z]:
+                        true_positions.append((a+x, b+y))
+                        
+        for i in range(len(true_positions)):
+            constructs.append(Block(true_positions[i], self.colour, True))
+        return constructs
+    
+    def build_matrix(self):
+        matrix = np.zeros((4, 4), dtype=int)
+        for i in range(4):
+            a, b = self.blocks[i].get_coord()
+            x, y = self.anchor
+            matrix[a - x][b - y] = i + 1
+        return matrix
+    
+    def rotate(self):
+        squareorline = (self.val == 0 or self.val == 3)
+        if squareorline == True:
+            tempMat = self.matrix
+            tempMat = np.transpose(tempMat)
+            tempMat = np.flip(tempMat, 1)
+            self.matrix = tempMat
+        else:
+            tempMat = np.zeros((3, 3), dtype=int)
+            for x in range(0, 3):
+                for y in range(0, 3):
+                    tempMat[x, y] = self.matrix[x, y]
+            tempMat = np.transpose(tempMat)
+            tempMat = np.flip(tempMat, 1)
+            for x in range(0, 3):
+                for y in range(0, 3):
+                   self.matrix[x, y] = tempMat[x, y]
+                   
+        a, b = self.anchor
+        for i in range(len(self.blocks)):
+            j, k = (0, 0)
+            for x in range(4):
+                for y in range(4):
+                    if self.matrix[x, y] == i + 1:
+                        j = x
+                        k = y
+            self.blocks[i].set_coord((a+j, b+k))
+        
+                   
+    def get_block(self):
+        list = []
+        for i in range(len(self.blocks)):
+            list.append(self.blocks[i])
+        return list
+    
+    def move(self, arg):
+        a, b = self.anchor
+        if arg == "left":
+            a -= 1
+        elif arg == "right":
+            a += 1
+        elif arg == "down":
+            b += 1
+        self.anchor = (a, b)
+        for i in range(len(self.blocks)):
+            self.blocks[i].move(arg)
+            
         
