@@ -164,8 +164,8 @@ class Tetris:
                 del positions[piece.get()[x]]
         return positions
     
-    def detect_collision(self, positions):
-        values = self.current_piece.get()
+    def detect_collision_down(self, p, positions):
+        values = p.get()
         collisions = False
         for i in range(len(values)):
             not_bottom = False
@@ -177,6 +177,44 @@ class Tetris:
                 if (a, b+1) in positions:
                     collisions = True
         return collisions
+
+    def detect_collision_left(self, p, positions):
+        values = p.get()
+        collisions = False
+        for i in range(len(values)):
+            not_left = False
+            a, b = values[i]
+            for j in range(len(values)):
+                if (a - 1, b) == values[j]:
+                    not_left = True
+            if not_left == False:
+                if (a - 1, b) in positions:
+                    collisions = True
+        return collisions
+    
+    def detect_collision_right(self, p, positions):
+        values = p.get()
+        collisions = False
+        for i in range(len(values)):
+            not_right = False
+            a, b = values[i]
+            for j in range(len(values)):
+                if (a + 1, b) == values[j]:
+                    not_right = True
+            if not_right == False:
+                if (a + 1, b) in positions:
+                    collisions = True
+        return collisions
+    
+    def clear_check(self, positions, piece):
+        self.remove_piece(self.current_piece, self.positions)
+        for y in range(self.height - 1, 0, -1):
+            count = 0
+            for x in range(self.width):
+                if (x, y) in positions:
+                    count += 1 
+            if count > 10:
+                pass
                 
     def main(self):
         #* GAME INIT
@@ -214,30 +252,38 @@ class Tetris:
                                 self.current_piece = Piece(-1, (3, -3))
                     
                     if event.key == pygame.K_LEFT:
-                        if self.current_piece.bounds()[1] > 0:
+                        if self.current_piece.bounds()[1] > 0 and self.detect_collision_left(self.current_piece, self.positions) == False:
                             self.positions = self.remove_piece(self.current_piece, self.positions)
                             self.current_piece.left()
                             
                     if event.key == pygame.K_RIGHT:
-                        if self.current_piece.bounds()[2] < self.width - 1:
+                        if self.current_piece.bounds()[2] < self.width - 1 and self.detect_collision_right(self.current_piece, self.positions) == False:
                             self.positions = self.remove_piece(self.current_piece, self.positions)
                             self.current_piece.right()
                             
                     if event.key == pygame.K_UP:
-                        self.positions = self.remove_piece(self.current_piece, self.positions)
-                        self.current_piece.rotate()
+                        good_rotate = True
+                        self.remove_piece(self.current_piece, self.positions)
+                        ghost_piece = Piece(self.current_piece.typeVal, self.current_piece.anchor)
+                        ghost_piece.rotate()
+                        values = ghost_piece.get()
+                        for pos in values:
+                            if pos in self.positions:
+                                good_rotate = False
+                        if good_rotate:
+                            self.current_piece.rotate()
                         while self.current_piece.bounds()[1] < 0 : self.current_piece.right()
                         while self.current_piece.bounds()[2] > self.width - 1: self.current_piece.left()
                             
             if count > 300:
-                if self.current_piece.bounds()[0] <= 19 and self.detect_collision(self.positions) == False:
+                if self.current_piece.bounds()[0] <= 19 and self.detect_collision_down(self.current_piece, self.positions) == False:
                     self.positions = self.remove_piece(self.current_piece, self.positions)
                     self.current_piece.down()
                     if self.current_piece.bounds()[0] >= 19:
                         self.positions = self.place_piece(self.current_piece, self.positions)
                         self.current_piece = Piece(-1, (3, -3))
                 count = 0
-            if self.detect_collision(self.positions) == True:
+            if self.detect_collision_down(self.current_piece, self.positions) == True:
                 self.positions = self.place_piece(self.current_piece, self.positions)
                 self.current_piece = Piece(-1, (3, -3))                 
                         
