@@ -5,29 +5,29 @@ class Tetris:
     def __init__(self, width, height) -> None:
         self.width = width
         self.height = height
-        
+    
     def create_grid(self, pieces):
         grid = [[0 for _ in range(self.width)] for _ in range(self.height)]
-        for piece in pieces:
-            if isinstance(pieces[piece], Piece):
-                for i in range(len(pieces[piece].blocks)):
-                    x, y = pieces[piece].blocks[i].get_coord()
-                    grid[y][x] = pieces[piece].blocks[i].get_colour()
-            elif isinstance(pieces[piece], Block):
-                x, y = pieces[piece].get_coord()
-                grid[y][x] = pieces[piece].get_colour()
-                    
+        for piece in pieces.values(): #loops through each piece/block in the dictionary
+            if isinstance(piece, Piece): #checks if it is a piece
+                for block in piece.get_block(): #puts each block in the piece onto the grid
+                    x, y = block.get_coord()
+                    grid[x][y] = block.get_colour()
+            elif isinstance(piece, Block): #checks if it is a block
+                x, y = piece.get_coord() #puts the block into the grid
+                grid[x][y] = piece.get_colour()
+            
         return grid
     
     def draw_grid(self, win, grid, buffer, block_size):
-            for y in range(self.height): #draw the grid from the dictionary
-                for x in range(self.width):
-                    if grid[y][x] == 0:
-                        colour = (0, 0, 0)
-                    else:
-                        colour = (255, 255, 255)
-                    pygame.draw.rect(win, colour,((buffer + x*block_size), (buffer + y*block_size), block_size, block_size))
-                    
+        for x in range(self.height): #draw the grid from the dictionary
+            for y in range(self.width):
+                if grid[x][y] == 0:
+                    colour = (0, 0, 0)
+                else:
+                    colour = (255, 255, 255)
+                pygame.draw.rect(win, colour,((buffer + y*block_size), (buffer + x*block_size), block_size, block_size))
+                
     def rotate(self, piece, grid):
         ghost_piece = piece
         ghost_piece.rotate()
@@ -35,17 +35,41 @@ class Tetris:
         while valid == False:
             for block in ghost_piece.get_block():
                 val = 0
-                a, b = block.get_coord()
-                if a < 0:
+                y, x = block.get_coord()
+                if x < 0:
                     ghost_piece.move("right")
                     val += 1
-                elif a > 9:
+                elif x > self.width - 1:
                     ghost_piece.move("left")
                     val += 1
             if val == 0: valid = True
         return ghost_piece
-
-        
+    
+    def get_left(self, piece, grid):
+        possible = True
+        for block in piece.get_block():
+            y, x = block.get_coord()
+            if x <= 0:
+                possible = False
+        return possible
+    
+    def get_right(self, piece, grid):
+        possible = True
+        for block in piece.get_block():
+            y, x = block.get_coord()
+            if x >= self.width - 1:
+                possible = False
+        return possible
+    
+    def get_down(self, piece, grid):
+        possible = True
+        for block in piece.get_block():
+            y, x = block.get_coord()
+            if y >= self.height - 1:
+                possible = False
+                
+        return possible
+    
     def main(self):
         pygame.init()
         s_width = 500
@@ -70,10 +94,7 @@ class Tetris:
                 if event.type == pygame.KEYDOWN:
                     possible = True
                     if event.key == pygame.K_DOWN:
-                        for block in current_piece.get_block():
-                            a, b = block.get_coord()
-                            if b >= 19:
-                                possible = False
+                        possible = self.get_down(current_piece, grid)
                         if possible:
                             current_piece.move("down")
                         else:
@@ -82,20 +103,14 @@ class Tetris:
                             next_id += 1
                         
                     if event.key == pygame.K_LEFT:
-                        for block in current_piece.get_block():
-                            a, b = block.get_coord()
-                            if a <= 0:
-                                possible = False
+                        possible = self.get_left(current_piece, grid)
                         if possible:
                             current_piece.move("left")
                         
                     if event.key == pygame.K_RIGHT:
-                        for block in current_piece.get_block():
-                            a, b = block.get_coord()
-                            if a >= 9:
-                               possible = False
+                        possible = self.get_right(current_piece, grid)
                         if possible:
-                            current_piece.move("right") 
+                            current_piece.move("right")
                             
                     if event.key == pygame.K_UP:
                         current_piece = self.rotate(current_piece, grid)
@@ -106,7 +121,7 @@ class Tetris:
             self.draw_grid(win, grid, buffer, block_size)
             pygame.display.update()
         pygame.quit()
+        
 t = Tetris(10, 20)
 t.main()
-pass
-pass
+pass                

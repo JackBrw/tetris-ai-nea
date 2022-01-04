@@ -1,6 +1,5 @@
 import random as rd
 import numpy as np
-from numpy.core.fromnumeric import shape
 
 def figures(x): #*returns the specific figure
     figures = {
@@ -19,7 +18,7 @@ class Block:
         self.coord = coord #coordinate of piece
         self.colour = colour #colour of the piece
         self.piece = piece #whether it is part of a piece or not
-    
+        
     #*GETTERS AND SETTERS BELOW    
     def set_coord(self, new):
         self.coord = new
@@ -32,16 +31,16 @@ class Block:
     
     def get_state(self):
         return self.piece
-        
-    def move(self, arg):
+    
+    def move(self, arg): #moves the block down, left or right
         a, b = self.coord
         if arg == "left":
-            a -= 1
+            b -= 1
         elif arg == "right":
-            a += 1
-        elif arg == "down":
             b += 1
-        self.coord = (a, b)
+        elif arg == "down":
+            a += 1
+        self.set_coord((a, b))
         
 class Piece:
     def __init__(self, val, colour, anchor) -> None:
@@ -52,7 +51,7 @@ class Piece:
             val = rd.randint(0, 6)
             self.val = val
         self.shape = figures(val)
-        self.anchor = anchor
+        self.anchor = anchor 
         self.blocks: list(Block) = self.construct()
         self.matrix = self.build_matrix()
         
@@ -116,13 +115,11 @@ class Piece:
     def move(self, arg):
         a, b = self.anchor
         if arg == "left":
-            a -= 1
+            b -= 1
         elif arg == "right":
-            a += 1
-        elif arg == "down":
             b += 1
+        elif arg == "down":
+            a += 1
         self.anchor = (a, b)
         for i in range(len(self.blocks)):
             self.blocks[i].move(arg)
-            
-        

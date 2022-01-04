@@ -1,10 +1,11 @@
 import numpy as np
-array = np.array([[1, 0, 0, 0],
-                  [2, 3, 0, 0],
-                  [0, 4, 0, 0],
-                  [0, 0, 0, 0]])
+array = [[1, 2, 3, 4],
+        [5, 6, 7, 8],
+        [9, 10, 11, 12],
+        [13, 14, 15, 16]]
 
-array = np.transpose(array)
-array = np.flip(array, 1)
-
-print(array)
+# for x in range(4):
+#     for y in range(4):
+#         print(f"{array[x][y]}")
+        
+print(f"{array[0][1]}")
