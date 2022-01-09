@@ -9,3 +9,5 @@ array = [[1, 2, 3, 4],
 #         print(f"{array[x][y]}")
         
 print(f"{array[0][1]}")
+
+ + ai.run(self.grid, self.current_piece, self.width, self.height):

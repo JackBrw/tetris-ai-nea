@@ -1,5 +1,6 @@
 import random as rd
 from figures import *
+from colours import *
 import numpy as np
 
 class Piece: # * The class that holds a matrix of the piece
@@ -24,7 +25,7 @@ class Piece: # * The class that holds a matrix of the piece
                     self.matrix[x, y] = 1
                 if (x + y*4) == d:
                     self.matrix[x, y] = 1
-        self.colour = 1
+        self.colour = self.typeVal + 1
                     
     def get(self):
         return self.position()
