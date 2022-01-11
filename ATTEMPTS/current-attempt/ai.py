@@ -1,7 +1,8 @@
 import pygame
-
-
-class Event():
+from piece import *
+    
+    
+class Event: #Class that handles keys in for the AI
     type = None
     key = None
 
@@ -9,13 +10,15 @@ class Event():
         self.type = type
         self.key = key
 
-
-counter = 0
-def run(grid, piece, width, height):
-    global counter
-    counter += 1
-    if counter < 3:
-        return []
-    counter = 0
-    e = Event(pygame.KEYDOWN, pygame.K_RIGHT)
-    return [e]
+class AI:
+    def __init__(self) -> None:
+        self.counter = 0
+        
+    
+    def proc(self):
+        self.counter += 1
+        if self.counter < 20:
+            return []
+        self.counter = 0
+        e = Event(pygame.KEYDOWN, pygame.K_UP)
+        return [e] #*MUST RETURN THE KEY AS A LIST

@@ -11,3 +11,5 @@ array = [[1, 2, 3, 4],
 print(f"{array[0][1]}")
 
  + ai.run(self.grid, self.current_piece, self.width, self.height):
+     
+             (1, 5, 9, 13), #I piece [0]
