@@ -54,7 +54,7 @@ class Piece: # * The class that holds a matrix of the piece
         for x in range(4):
             for y in range(4):
                 if self.matrix[x][y] == 1:
-                    val.append((x + a, y + b))
+                    val.append((int(x + a), int(y + b)))
         return val
     
     def down(self):

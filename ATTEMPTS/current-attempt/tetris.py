@@ -28,6 +28,7 @@ class Tetris:
         self.level = 0
         self.pieces = []
         self.isAi = ai
+        self.new = True
         
     def create_grid(self):
         self.grid = [[0 for _ in range(self.height)] for _ in range(self.width)]
@@ -45,11 +46,8 @@ class Tetris:
         collision = False
         for block in values:
             a, b = block
-            if a > self.width - 1 or a < 0 or b > self.height - 1:
-                collision = True
-            elif block in self.positions:
-                collision = True
-                
+            if a > self.width-1 or a < 0 or b > self.height-1 or block in self.positions:
+                collision = True           
         return collision
     
     def draw_grid(self, win, buffer, block_size):
@@ -93,6 +91,7 @@ class Tetris:
             self.pieces = self.gen_pieces()
             self.current_piece = Piece(self.pieces[0], (self.width/2-2, -2))  
             del self.pieces[0]
+        self.new = True
       
     def clear_and_check(self):
         lines_cleared = 0
@@ -159,14 +158,14 @@ class Tetris:
         self.lines_cleared = 0
         
         clock = pygame.time.Clock()
-        fps = 100
+        fps = 30
         level = 1
         
         #*MUSIC
-        mixer.init()
-        mixer.music.load('music.mp3')
-        mixer.music.set_volume(0.7)
-        mixer.music.play(-1)
+        # mixer.init()
+        # mixer.music.load('music.mp3')
+        # mixer.music.set_volume(0.7)
+        # mixer.music.play(-1)
         
         bot = AI()
         
@@ -195,7 +194,8 @@ class Tetris:
                 win.blit(ai_text, ai_rect)
                 
             if state == "ai":
-                botEvents = bot.proc()
+                botEvents = bot.proc(self.grid, self.current_piece, self.positions, self.width, self.height, self.new)
+                self.new = False
             else:
                 botEvents = []
                 
@@ -210,7 +210,7 @@ class Tetris:
                         if self.is_over(aiBut_rect, mouse): state = "ai"
                         pygame.draw.rect(win, (117, 97, 113), (0, 0, s_width, s_height))
                         
-                if state == "run" or "ai":    
+                if state == "run" or state == "ai":    
                     if event.type == pygame.KEYDOWN:
                         if event.key == pygame.K_DOWN:
                             self.current_piece.down()
@@ -242,7 +242,7 @@ class Tetris:
                             self.freeze_piece()
                             self.score += 2
             if state == "run" or state == "ai":
-                if count >= 50 - 5*level:
+                if count >= 12 - level:
                     if self.current_piece != None: self.current_piece.down()
 
                     if self.detectCollision() == True:

@@ -1,4 +1,7 @@
+from numpy.lib.function_base import copy
 import pygame
+import copy
+import random
 from piece import *
     
     
@@ -12,13 +15,7 @@ class Event: #Class that handles keys in for the AI
 
 class AI:
     def __init__(self) -> None:
-        self.counter = 0
-        
+        pass
+            
+            
     
-    def proc(self):
-        self.counter += 1
-        if self.counter < 20:
-            return []
-        self.counter = 0
-        e = Event(pygame.KEYDOWN, pygame.K_UP)
-        return [e] #*MUST RETURN THE KEY AS A LIST
