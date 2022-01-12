@@ -17,7 +17,7 @@ class Event: #Class that handles keys in for the AI
         self.key = key
         
 class Tetris:
-    def __init__(self, width, height, s_width, s_height, ai) -> None: #initialiser
+    def __init__(self, width, height, s_width, s_height) -> None: #initialiser
         self.height = height
         self.width = width
         self.s_width = s_width
@@ -27,8 +27,7 @@ class Tetris:
         self.current_piece: Piece = None
         self.level = 0
         self.pieces = []
-        self.isAi = ai
-        self.new = True
+        self.new_target = True
         
     def create_grid(self):
         self.grid = [[0 for _ in range(self.height)] for _ in range(self.width)]
@@ -91,7 +90,7 @@ class Tetris:
             self.pieces = self.gen_pieces()
             self.current_piece = Piece(self.pieces[0], (self.width/2-2, -2))  
             del self.pieces[0]
-        self.new = True
+        self.new_target = True
       
     def clear_and_check(self):
         lines_cleared = 0
@@ -194,8 +193,8 @@ class Tetris:
                 win.blit(ai_text, ai_rect)
                 
             if state == "ai":
-                botEvents = bot.proc(self.grid, self.current_piece, self.positions, self.width, self.height, self.new)
-                self.new = False
+                botEvents = bot.proc(self.grid, self.current_piece, self.positions, self.width, self.height, self.new_target)
+                self.new_target = False
             else:
                 botEvents = []
                 

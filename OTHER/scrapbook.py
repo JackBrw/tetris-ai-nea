@@ -1,6 +1,10 @@
-num = 100
-index = 0
-for i in range(len(moves)):
-    if holesList[i] < num:
-        num = holesList[i]
-        index = i
+loop = True
+while loop:
+    temp = False
+    for block in default.get():
+        x, y = block
+        if x >0:
+            temp = True
+    if temp: default.left()
+    loop = temp
+default.right()
