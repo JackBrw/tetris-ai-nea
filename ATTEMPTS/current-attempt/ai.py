@@ -1,3 +1,4 @@
+from json import detect_encoding
 from numpy.lib.function_base import copy
 import pygame
 import copy
@@ -21,6 +22,10 @@ class AI:
             if a > self.width-1 or a < 0 or b > self.height-1 or block in self.positions:
                 return True       
         return False
+    
+    def bounds(self, x, y):
+        if x>=0 and y>=0 and x<self.width and y<self.height: return True
+        else: return False
     
     def removePiece(self, piece, grid):
         for block in piece.get():
@@ -50,8 +55,11 @@ class AI:
         xt, yt = self.target.anchor
         
         e = Event(pygame.KEYDOWN, pygame.K_s)
+        
+        if self.piece.raw() != self.target.raw():
+            e =Event(pygame.KEYDOWN, pygame.K_UP)
         #move left if needed
-        if x > xt:
+        elif x > xt:
             e = Event(pygame.KEYDOWN, pygame.K_LEFT)
             
         #move right if needed
@@ -83,12 +91,16 @@ class AI:
             
             #move the piece down until it can't
             current = copy.deepcopy(default)
-            while not self.detectCollision(current):
-                current.down()
-            current.up()
-            
-            #adds the move to the list of all moves
-            moves.append(copy.deepcopy(current))
+            for i in range(4):
+                current.rotate()
+                if self.detectCollision(current):
+                    for _ in range(3): current.rotate()
+                while not self.detectCollision(current):
+                    current.down()
+                current.up()
+                
+                #adds the move to the list of all moves
+                moves.append(copy.deepcopy(current))
             
             #moves the default piece to the right
             default.right()
@@ -99,14 +111,14 @@ class AI:
         
         heights = self.getHeight(moves)
         holes = self.getHoles(moves)
+        againsts = self.getAgainst(moves)
         suits = []
         for i in range(len(moves)):
-            suit = 10 - heights[i] - 3*holes[i]
+            suit = 10 - heights[i] - 3*holes[i] + 0.1*againsts[i]
             suits.append(suit)
         index = suits.index(max(suits))
         return moves[index]
-        
-        
+          
     def getHeight(self, moves):
         
         #empty list of heights for each move
@@ -116,7 +128,8 @@ class AI:
             #place the piece in the grid
             for block in piece.get():
                 x, y = block
-                self.grid[x][y] = piece.colour
+                if self.bounds(x, y):
+                    self.grid[x][y] = piece.colour
 
             #calculate the max height for the move
             height = 0
@@ -128,7 +141,8 @@ class AI:
             #remove the piece from the grid
             for block in piece.get():
                 x, y = block
-                self.grid[x][y] = 0
+                if self.bounds(x, y):
+                    self.grid[x][y] = 0
                 
             heights.append(height)
         return heights
@@ -142,7 +156,8 @@ class AI:
             #place the piece in the grid
             for block in piece.get():
                 x, y = block
-                self.grid[x][y] = piece.colour
+                if self.bounds(x, y):
+                    self.grid[x][y] = piece.colour
 
             #calculate the number of holes
             hole = 0
@@ -154,9 +169,48 @@ class AI:
             #remove the piece from the grid
             for block in piece.get():
                 x, y = block
-                self.grid[x][y] = 0
+                if self.bounds(x, y):
+                    self.grid[x][y] = 0
                 
             holes.append(hole)
         return holes          
             
-    
+    def getAgainst(self, moves):
+        #empty list of heights for each move
+        againsts = []
+        for piece in moves:
+            
+            #place the piece in the grid
+            for block in piece.get():
+                x, y = block
+                if self.bounds(x, y):
+                    self.grid[x][y] = piece.colour
+
+            against = 0
+            #calculate how many blocks/sides of the grid the block is touching
+            for block in piece.get():
+                x, y = block
+                if x == 0:
+                    against += 1
+                if x == self.width-1:
+                    against += 1
+                if y == self.height-1:
+                    against += 1
+                if self.bounds(x-1, y):
+                    if self.grid[x-1][y] != 0:
+                        against += 1
+                if self.bounds(x+1, y):
+                    if self.grid[x+1][y]:
+                        against += 1
+                if self.bounds(x, y+1):
+                    if self.grid[x][y+1]:
+                        against +=1     
+
+            #remove the piece from the grid
+            for block in piece.get():
+                x, y = block
+                if self.bounds(x, y):
+                    self.grid[x][y] = 0
+                
+            againsts.append(against)
+        return againsts

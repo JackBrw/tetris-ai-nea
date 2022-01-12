@@ -48,13 +48,21 @@ class Piece: # * The class that holds a matrix of the piece
                 for y in range(0, 3):
                     self.matrix[x, y] = tempMat[x, y]
         
-    def position(self) -> list: #WIP
+    def position(self) -> list:
         val = []
         a, b = self.anchor
         for x in range(4):
             for y in range(4):
                 if self.matrix[x][y] == 1:
                     val.append((int(x + a), int(y + b)))
+        return val
+    
+    def raw(self) -> list:
+        val = []
+        for x in range(4):
+            for y in range(4):
+                if self.matrix[x][y] == 1:
+                    val.append((int(x), int(y)))
         return val
     
     def down(self):
