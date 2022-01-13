@@ -1,4 +1,5 @@
 from json import detect_encoding
+from turtle import width
 from numpy.lib.function_base import copy
 import pygame
 import copy
@@ -71,8 +72,7 @@ class AI:
             e = Event(pygame.KEYDOWN, pygame.K_DOWN)
             
         return [e]
-        
-        
+            
     def getTarget(self):
         moves = []
         
@@ -112,9 +112,11 @@ class AI:
         heights = self.getHeight(moves)
         holes = self.getHoles(moves)
         againsts = self.getAgainst(moves)
+        blockades = self.getBlockades(moves)
+        lines_cleared = self.getLinesCleared(moves)
         suits = []
         for i in range(len(moves)):
-            suit = 10 - heights[i] - 3*holes[i] + 0.1*againsts[i]
+            suit = 0 - heights[i] - 3*holes[i] + 0.2*againsts[i] - 30*blockades[i] + 4**lines_cleared[i]
             suits.append(suit)
         index = suits.index(max(suits))
         return moves[index]
@@ -176,6 +178,7 @@ class AI:
         return holes          
             
     def getAgainst(self, moves):
+        
         #empty list of heights for each move
         againsts = []
         for piece in moves:
@@ -186,8 +189,8 @@ class AI:
                 if self.bounds(x, y):
                     self.grid[x][y] = piece.colour
 
-            against = 0
             #calculate how many blocks/sides of the grid the block is touching
+            against = 0
             for block in piece.get():
                 x, y = block
                 if x == 0:
@@ -214,3 +217,64 @@ class AI:
                 
             againsts.append(against)
         return againsts
+    
+    def getBlockades(self, moves):
+        blockades = []
+        for piece in moves:
+            
+            #place the piece in the grid
+            for block in piece.get():
+                x, y = block
+                if self.bounds(x, y):
+                    self.grid[x][y] = piece.colour
+
+            #calculate if there is a blockade(piece on top of a hole)
+            blockade = 0
+            for y in range(self.height-1, 1, -1):
+                for x in range(self.width):
+                    if self.grid[x][y] == 0 and self.grid[x][y-1] != 0:
+                        for block in piece.get():
+                            x1, y1 = block
+                            if x == x1:
+                                blockade = 1 
+
+            #remove the piece from the grid
+            for block in piece.get():
+                x, y = block
+                if self.bounds(x, y):
+                    self.grid[x][y] = 0
+                
+            blockades.append(blockade)
+        return blockades
+    
+    def getLinesCleared(self, moves):
+       
+        #empty list of lines cleared for each move
+        lines = []
+        for piece in moves:
+            
+            #place the piece in the grid
+            for block in piece.get():
+                x, y = block
+                if self.bounds(x, y):
+                    self.grid[x][y] = piece.colour
+
+            #calculate the max height for the move
+            lines_cleared = 0
+            for y in range(self.height):
+                count = 0
+                for x in range(self.width):
+                    if self.grid[x][y] != 0:
+                        count += 1
+                if count == self.width:
+                    lines_cleared += 1
+            
+            
+            #remove the piece from the grid
+            for block in piece.get():
+                x, y = block
+                if self.bounds(x, y):
+                    self.grid[x][y] = 0
+                
+            lines.append(lines_cleared)
+        return lines 
