@@ -278,3 +278,5 @@ class AI:
                 
             lines.append(lines_cleared)
         return lines 
+    
+    

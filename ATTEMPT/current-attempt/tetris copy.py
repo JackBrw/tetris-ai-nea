@@ -50,7 +50,7 @@ class Tetris:
         return collision
     
     def draw_grid(self, win, buffer, block_size):
-        for x in range(self.width): #draw the grid from the dictionary
+        for x in range(self.width): #draw the grid
             for y in range(self.height):
                 colour = intToColour[self.grid[x][y]]
                 pygame.draw.rect(win, colour,((buffer + x*block_size), (buffer + y*block_size), block_size, block_size))
