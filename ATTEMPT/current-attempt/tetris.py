@@ -1,3 +1,4 @@
+from turtle import speed
 from typing import List
 
 from pygame.draw import lines
@@ -36,7 +37,7 @@ class Tetris:
         if ai: self.state = "ai"
         else: self.state = "play"
             
-    #reset the values and restart the game
+    #reset the values and restart the game, only call on 'ai' mode
     def restart(self):
         self.positions = {}
         self.grid = []
@@ -49,6 +50,7 @@ class Tetris:
         self.score = 0
         self.lines_cleared = 0
         self.count = 0
+        self.weights = self.bot.weight
         self.state = "ai"
         
     #creates the grid
@@ -239,10 +241,14 @@ class Tetris:
             
             #make the speed the ai game moves at constant
             if self.state == "ai":
-                level = 10
+                speed = 10
                 
             #make the speed correlate to the level
-            if self.count >= 12 - level:
+            if self.level > 10:
+                speed = 10
+            else:
+                speed = self.level
+            if self.count >= 12 - speed:
                 
                 #move the piece down at the set interval
                 if self.current_piece != None: self.current_piece.down()

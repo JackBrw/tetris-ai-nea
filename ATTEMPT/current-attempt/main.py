@@ -10,6 +10,8 @@ os.environ['SDL_VIDEO_WINDOW_POS'] = "%d,%d" % (0,0)
 state = "menu"
 pygame.init()
 win = pygame.display.set_mode((0, 0), pygame.RESIZABLE)
+
+#makes the window full screen
 if sys.platform == "win32":
     HWND = pygame.display.get_wm_info()['window']
     SW_MAXIMIZE = 3

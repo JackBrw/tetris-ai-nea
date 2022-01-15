@@ -17,7 +17,9 @@ class Event: #Class that handles keys in for the AI
         self.key = key
 
 class AI:
-    def detectCollision(self, piece): #COPIED FROM THE TETRIS FILE (MAIN PROGRAM) AND MODIFIED SLIGHTLY
+    
+    #detect if piece is out of bounds or in another object
+    def detectCollision(self, piece): 
         values = piece.get()
         for block in values:
             a, b = block
@@ -25,10 +27,12 @@ class AI:
                 return True       
         return False
     
+    #detects if the x and y value are within the bounds of the grid
     def bounds(self, x, y):
         if x>=0 and y>=0 and x<self.width and y<self.height: return True
         else: return False
     
+    #removes the piece from the grid
     def removePiece(self, piece, grid):
         for block in piece.get():
             x, y = block
@@ -36,10 +40,12 @@ class AI:
                 grid[x][y] = 0
         return grid
     
+    #initialiser
     def __init__(self) -> None:
         self.target: Piece = None
         self.weight = weights.get()
     
+    #processes the next move
     def proc(self, grid, piece, positions, width, height, new_target):
         
         #import and define all needed variables
@@ -74,7 +80,8 @@ class AI:
             e = Event(pygame.KEYDOWN, pygame.K_DOWN)
             
         return [e]
-            
+         
+    #finds the ideal piece for the current piece to move to
     def getTarget(self):
         moves = []
         
@@ -122,7 +129,8 @@ class AI:
             suits.append(suit)
         index = suits.index(max(suits))
         return moves[index]
-          
+      
+    #gets the maximum height of the grid for each possible move    
     def getHeight(self, moves):
         
         #empty list of heights for each move
@@ -151,6 +159,7 @@ class AI:
             heights.append(height)
         return heights
     
+    #gets the number of holes in the grid for each possible move
     def getHoles(self, moves):
         
         #empty list of holes for each move
@@ -179,6 +188,7 @@ class AI:
             holes.append(hole)
         return holes          
             
+    #gets the number of blocks, edges or floor the piece is against for each possible move
     def getAgainst(self, moves):
         
         #empty list of heights for each move
@@ -220,6 +230,7 @@ class AI:
             againsts.append(against)
         return againsts
     
+    #gets the number of holes the piece will be above for each possible move
     def getBlockades(self, moves):
         blockades = []
         for piece in moves:
@@ -249,6 +260,7 @@ class AI:
             blockades.append(blockade)
         return blockades
     
+    #gets the number of lines cleared for each possible move
     def getLinesCleared(self, moves):
        
         #empty list of lines cleared for each move
