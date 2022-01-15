@@ -1,11 +1,9 @@
 from typing import Tuple
-
-from numpy import block
 from piece import *
 from tetris import *
 from ai import *
 from colours import *
-import pygame, os, ctypes, sys, math
+import pygame, os, ctypes, sys
 
 #*SETUP VARIABLES
 os.environ['SDL_VIDEO_WINDOW_POS'] = "%d,%d" % (0,0)
@@ -23,6 +21,8 @@ pygame.display.set_caption("Tetris")
 
 #*FONTS BELOW
 main_font = pygame.font.SysFont("Calibri", 25, True, False)
+quit_font = pygame.font.SysFont("Calibri", 100, True, False)
+return_font = pygame.font.SysFont("Calibri", 60, True, False)
 
 def draw_menu(win):
     
@@ -55,8 +55,6 @@ def is_over(rect, pos): #input rectangle and mouse position
 def draw_tetris(tetris: Tetris, anchor: Tuple, win, block_size):
     a, b = anchor
     pygame.draw.rect(win, intToColour[9], pygame.Rect(a, b, 10*block_size, 20*block_size), 1)
-    pygame.draw.rect(win, intToColour[8], pygame.Rect(a + 12*block_size, b, 4*block_size, 4*block_size))
-    pygame.draw.rect(win, intToColour[9], pygame.Rect(a + 12*block_size, b, 4*block_size, 4*block_size), 1)
 
     for x in range(tetris.width): #draw the grid
         for y in range(tetris.height):
@@ -71,8 +69,10 @@ def draw_tetris(tetris: Tetris, anchor: Tuple, win, block_size):
         
     #draw the next piece
     next_piece: Piece = None
-    a1 = a + 12*block_size
+    a1 = a + 13*block_size
     b1 = b
+    pygame.draw.rect(win, intToColour[8], pygame.Rect(a1, b, 4*block_size, 4*block_size))
+    pygame.draw.rect(win, intToColour[9], pygame.Rect(a1, b, 4*block_size, 4*block_size), 1)
     if len(tetris.pieces) > 0:
         next_piece = Piece(tetris.pieces[0], (0,0))
     for y in range(4):
@@ -83,12 +83,40 @@ def draw_tetris(tetris: Tetris, anchor: Tuple, win, block_size):
                     if next_piece.typeVal == 0 or next_piece.typeVal == 3 or next_piece.typeVal == 2: val = 0
                     pygame.draw.rect(win, intToColour[next_piece.colour], (a1 + (x+val)*block_size, b1 + y*block_size, block_size, block_size))
     
-    score_font = pygame.font.SysFont("Calibri", block_size, True, False)
-    score_text = score_font.render(f"Score: {tetris.score}", True, intToColour[11])
-    score_rect = score_text.get_rect(center=(a1+2*block_size, b1+6*block_size))
+    
+    pygame.draw.rect(win, intToColour[8], (a1 - 2*block_size, b1 + 4*block_size + 5, screen_width - (a1 - 2*block_size), screen_height - (b1 + 4*block_size + 5)))
+    info_font = pygame.font.SysFont("Calibri", block_size, True, False)
+    
+    #draw the score
+    score_text = info_font.render(f"Score: {tetris.score}", True, intToColour[11])
+    score_rect = score_text.get_rect(center=(a1+2*block_size, b1+7*block_size))
     pygame.draw.rect(win, intToColour[8], score_rect)
     win.blit(score_text, score_rect)
-games = []    
+    
+    #draw the lines cleared
+    lines_text = info_font.render(f"Lines: {tetris.lines_cleared}", True, intToColour[11])
+    lines_rect = lines_text.get_rect(center=(a1+2*block_size, b1+8*block_size))
+    pygame.draw.rect(win, intToColour[8], lines_rect)
+    win.blit(lines_text, lines_rect)
+    
+    #draw the level
+    level_text = info_font.render(f"Level: {tetris.level}", True, intToColour[11])
+    level_rect = level_text.get_rect(center=(a1+2*block_size, b1+9*block_size))
+    pygame.draw.rect(win, intToColour[8], level_rect)
+    win.blit(level_text, level_rect)
+    
+    #draw weights if AI
+    if tetris.state == "ai":
+        weightList = list(tetris.weights)
+        for i in range(len(tetris.weights)):
+            calculated, weight = list(tetris.weights.items())[i]
+            weight_text = info_font.render(f"{calculated}: {weight}", True, intToColour[11])
+            weight_rect = weight_text.get_rect(center=(a1+2*block_size, b1+(13+i)*block_size))
+            pygame.draw.rect(win, intToColour[8], weight_rect)
+            win.blit(weight_text, weight_rect)
+            
+games = []   
+gamesRunning = [] 
 while __name__ == "__main__":
     
     #get updated values for inputs etc.
@@ -96,6 +124,7 @@ while __name__ == "__main__":
     
     #all controls for the menu
     if state == "menu":
+        games = []
         play_but, ai_but, train_but = draw_menu(win)
         
         #gets user inputs
@@ -115,32 +144,76 @@ while __name__ == "__main__":
                     state = "train"
                     
                     #re-size the screen
-                    for _ in range(8):
+                    for _ in range(6):
                         games.append(Tetris(10, 20, True))
+                        gamesRunning.append(True)
                 pygame.draw.rect(win, intToColour[8], (0, 0, screen_width, screen_height))
                 
     if state == "play" or state == "ai":
+        
+        #run the game
         for game in games: game.run()
+        
+        #draw the game
         draw_tetris(games[0], (560, 50), win, 35)
+        
+        #check if lost
         for game in games:
-            if game.state != state:
-                quit()
+            if game.state == "quit":
+                state = game.state
+                pygame.draw.rect(win, intToColour[8], (0, 0, screen_width, screen_height))
                 
     if state == "train":
-        # for event in pygame.event.get():
-        #     if event.type == pygame.QUIT:
-        #         pygame.display.quit()
-        #         quit()
+        
+        #run and draw the games
         for i in range (len(games)): 
             if games[i].state == "ai":
                 games[i].run()
+            else:
+                gamesRunning[i] = False
             row = 450
             if i % 2 == 1: 
                 row = 50
                 column = (i-1)*200+50
             else:
                 column = i*200+50
-            draw_tetris(games[i], (column, row), win, 15)
+                
+            if gamesRunning[i]:
+                draw_tetris(games[i], (column, row), win, 15)
+            else:
+                pygame.draw.rect(win, intToColour[9], (column, row, 15*games[i].width, 15*games[i].height))
+                
+            #reset all games and run the genetic algorithm to 'evolve' the games
+            if not any(gamesRunning):
+                for x in range(len(games)):
+                    games[x].restart()
+                    gamesRunning[x] = True
+            
+    if state == "quit":
+            
+            #draw you lost message
+            quit_text = quit_font.render(f"You Lost! Score: {games[0].score}", True, intToColour[10])
+            quit_rect = quit_text.get_rect(center=(screen_width/2, screen_height/2 - 50))
+            pygame.draw.rect(win, intToColour[8], quit_rect)
+            win.blit(quit_text, quit_rect)
+            
+            #draws the 'Return to Menu' button
+            menu_text = return_font.render(f"Return to Menu", True, intToColour[10])
+            menu_rect = menu_text.get_rect(center=(screen_width/2, screen_height/2 + 90))
+            menu_but_rect = pygame.Rect(screen_width/2 - 200, screen_height/2 + 45, 400, 90)
+            pygame.draw.rect(win, intToColour[9], menu_but_rect)
+            win.blit(menu_text, menu_rect)
+            
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    pygame.display.quit()
+                    quit()
+                    
+                #gets the button press for return to menu
+                if event.type == pygame.MOUSEBUTTONDOWN:
+                    if is_over(menu_but_rect, mouse):
+                        state = "menu"
+                        pygame.draw.rect(win, intToColour[8], (0, 0, screen_width, screen_height))
         
     pygame.display.update()
     clock.tick(30)

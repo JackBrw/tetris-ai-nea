@@ -1,4 +1,5 @@
 
+#dictionary of all needed colours
 intToColour = {
     0:(224, 224, 224), #grid background
     1:(91, 178, 245),

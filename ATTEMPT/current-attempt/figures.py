@@ -1,4 +1,6 @@
-def figures(figure): # holds the 7 grid positions for the pieces
+
+# holds the 7 grid positions for the pieces
+def figures(figure): 
     figures = (
         (1, 5, 9, 13), #I piece [0]
         (1, 5, 8, 9), #J piece [1]

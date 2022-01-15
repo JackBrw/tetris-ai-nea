@@ -4,6 +4,7 @@ from numpy.lib.function_base import copy
 import pygame
 import copy
 import random
+import weights
 from piece import *
     
     
@@ -37,6 +38,7 @@ class AI:
     
     def __init__(self) -> None:
         self.target: Piece = None
+        self.weight = weights.get()
     
     def proc(self, grid, piece, positions, width, height, new_target):
         
@@ -116,7 +118,7 @@ class AI:
         lines_cleared = self.getLinesCleared(moves)
         suits = []
         for i in range(len(moves)):
-            suit = 0 - heights[i] - 3*holes[i] + 0.2*againsts[i] - 30*blockades[i] + 4**lines_cleared[i]
+            suit = self.weight["heights"]*heights[i] + self.weight["holes"]*holes[i] + self.weight["againsts"]*againsts[i] + self.weight["blockades"]*blockades[i] + self.weight["lines_cleared"]**lines_cleared[i]
             suits.append(suit)
         index = suits.index(max(suits))
         return moves[index]
